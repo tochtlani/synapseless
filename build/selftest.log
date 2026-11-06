@@ -1,0 +1,14 @@
+nvrm: b81 PERF_BOOST flags 0x12 INFINITE rc 0x0
+nvrm: b72 host-pointer import ON (probe NV_STATUS 0)
+nvrm: b80 LOCAL+mapped memory -> system RAM (b79 placement) (BAR1 8192 MB, VRAM 16303 MB, default)
+[selftest] linked battery=78 charging=false fw=1.0.9 eq=Música bands=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0] sidetone=false/7 powerSave=15 edition=Negro effect=Estático brightness=128
+[selftest] write curve ok=true
+[selftest] curve wrote [12, -12, 6, -6, 3, 0, 0, 0, 0, -3] read [12, -12, 6, -6, 3, 0, 0, 0, 0, -3] preset=0xff
+[selftest] restored preset=0x08 curve=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+[selftest] sidetone write ok=true
+[selftest] sidetone wrote 9 read 9
+[selftest] sidetone restored 7
+[selftest] app→headset static red: read 01 ff 00 00
+[selftest] headset→app after external spectrum: app shows Espectro
+[selftest] restored lighting 01 b0 00 ff
+[selftest] DONE
