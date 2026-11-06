@@ -73,6 +73,32 @@ Respuesta:
 
 ---
 
+# Protocolo del Razer Kraken Ultimate (USB)
+
+Viene del controlador `razerkraken_driver` de openrazer y se verificó contra un audífono real con firmware **2.50**.
+
+| Campo | Valor |
+|---|---|
+| VID:PID | `1532:0527` |
+| Petición | reporte de salida `0x04`, 37 bytes: `04 destino largo dirAlta dirBaja datos…` |
+| Respuesta | reporte de entrada `0x05`: `05 datos…`; no repite la dirección, así que las lecturas van de una en una |
+| Destino | `0x20` leer EEPROM, `0x00` leer RAM, `0x40` escribir RAM |
+
+| Dirección | Memoria | Contenido |
+|---|---|---|
+| `0x0030` | EEPROM | Firmware, 2 bytes BCD (`02 50` = 2.50) |
+| `0x172D` | RAM | Efecto: `00` apagado, `01` estático, `05` espectro, `0B` respiración |
+| `0x1741` | RAM | Color: `R G B intensidad` |
+| `0x1189` | RAM | Color en vivo: `R G B intensidad` |
+
+**Cambiar de color:**
+
+- Al entrar a estático, hay que escribir `00` en `0x172D`, luego el color y al final `01`. Sin el `00`, la lectura sale correcta pero los LED no toman el color ([openrazer#1606](https://github.com/openrazer/openrazer/issues/1606)).
+- Ya en estático, escribir en `0x1189` cambia los LED sin apagarlos. Así funciona la transición: unas 45 escrituras por segundo durante 1.5 s.
+- Al terminar la transición, Synapseless escribe el color también en `0x1741`.
+
+---
+
 # Protocolo estándar (ratones, teclados, laptops)
 
 > 🧪 Sin probar en hardware: viene del controlador `rzDevice25` de Synapse 4 y coincide con openrazer.

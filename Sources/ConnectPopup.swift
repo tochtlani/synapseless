@@ -177,6 +177,13 @@ struct CardSubject {
         }
     }
 
+    static func kraken(_ device: KrakenDevice) -> CardSubject {
+        CardSubject(key: "kraken", title: KrakenDevice.name, label: "Audífonos", showsBattery: false,
+                    battery: nil, charging: false) { power, angle, size in
+            AnyView(DeviceHero(image: nil, symbol: "headphones", size: size, power: power, angle: angle))
+        }
+    }
+
     static func device(_ device: StandardDevice) -> CardSubject {
         CardSubject(key: "pid-\(device.model.pid)", title: device.model.name, label: device.kindLabel,
                     showsBattery: device.model.hasBattery,

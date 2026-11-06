@@ -3,10 +3,11 @@ import SwiftUI
 
 struct MenuBarLabel: View {
     @ObservedObject var controller: HeadsetController
+    @ObservedObject var kraken: KrakenManager
 
     var body: some View {
         HStack(spacing: 3) {
-            Image(systemName: "headphones").opacity(controller.linked ? 1 : 0.45)
+            Image(systemName: "headphones").opacity(controller.linked || kraken.device != nil ? 1 : 0.45)
             if controller.linked, let b = controller.battery { Text("\(b)%") }
         }
     }
@@ -16,6 +17,7 @@ struct MenuView: View {
     @ObservedObject var controller: HeadsetController
     @ObservedObject var lighting: LightingEngine
     @ObservedObject var devices: StandardDeviceManager
+    @ObservedObject var kraken: KrakenManager
     var showCard: () -> Void
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     /// nil shows the headset; otherwise the PID of a catalog device.
@@ -23,9 +25,10 @@ struct MenuView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            if !devices.devices.isEmpty {
-                Picker("", selection: $selection) {
-                    Text("Audífonos").tag(Int?.none)
+            if tabCount > 1 {
+                Picker("", selection: Binding(get: { activeSelection }, set: { selection = $0 })) {
+                    if showsBarracudaTab { Text("Audífonos").tag(Int?.none) }
+                    if kraken.device != nil { Text("Kraken Ultimate").tag(Int?.some(KrakenLink.productID)) }
                     ForEach(devices.devices) { d in
                         Text(d.model.name.replacingOccurrences(of: "Razer ", with: "")).tag(Int?.some(d.model.pid))
                     }
@@ -33,7 +36,9 @@ struct MenuView: View {
                 .pickerStyle(.segmented)
                 .labelsHidden()
             }
-            if let pid = selection, let device = devices.devices.first(where: { $0.model.pid == pid }) {
+            if activeSelection == KrakenLink.productID, let device = kraken.device {
+                KrakenDeviceView(device: device)
+            } else if let pid = selection, let device = devices.devices.first(where: { $0.model.pid == pid }) {
                 StandardDeviceView(device: device)
             } else {
                 header
@@ -51,6 +56,18 @@ struct MenuView: View {
         }
         .padding(16)
         .frame(width: 340)
+    }
+
+    /// The Barracuda's empty state only helps if there's nothing else to show.
+    private var showsBarracudaTab: Bool { controller.dongleConnected || kraken.device == nil }
+
+    private var tabCount: Int {
+        (showsBarracudaTab ? 1 : 0) + (kraken.device != nil ? 1 : 0) + devices.devices.count
+    }
+
+    private var activeSelection: Int? {
+        if selection == nil, !showsBarracudaTab { return KrakenLink.productID }
+        return selection
     }
 
     // MARK: Sections
@@ -101,10 +118,10 @@ struct MenuView: View {
                 ForEach(LightEffect.allCases) { Text($0.title).tag($0) }
             }
             if lighting.effect.colorCount >= 1 {
-                colorRow(lighting.effect.colorCount == 2 ? "Color 1" : "Color", $lighting.color)
+                ColorRow(title: lighting.effect.colorCount == 2 ? "Color 1" : "Color", selection: $lighting.color)
             }
             if lighting.effect.colorCount == 2 {
-                colorRow("Color 2", $lighting.color2)
+                ColorRow(title: "Color 2", selection: $lighting.color2)
             }
             HStack {
                 Text("Brillo").frame(width: 70, alignment: .leading)
@@ -113,22 +130,6 @@ struct MenuView: View {
                        in: 1...255,
                        onEditingChanged: { if !$0 { controller.commitBrightness() } })
             }
-        }
-    }
-
-    private func colorRow(_ title: String, _ selection: Binding<RGB>) -> some View {
-        HStack {
-            Text(title)
-            Spacer()
-            ForEach(swatches, id: \.self) { hex in
-                let c = RGB(hex: hex)
-                Circle().fill(c.color).frame(width: 18, height: 18)
-                    .overlay(Circle().strokeBorder(.white.opacity(selection.wrappedValue.bytes == c.bytes ? 0.9 : 0), lineWidth: 2))
-                    .onTapGesture { selection.wrappedValue = c }
-            }
-            ColorPicker("", selection: Binding(get: { selection.wrappedValue.color }, set: { selection.wrappedValue = RGB($0) }),
-                        supportsOpacity: false)
-                .labelsHidden()
         }
     }
 
@@ -206,8 +207,6 @@ struct MenuView: View {
 
     // MARK: Helpers
 
-    private let swatches = ["44D62C", "FF0033", "00A2FF", "B000FF", "FF8A00", "FFFFFF"]
-
     private func powerOptions(including current: Int) -> [Int] {
         Array(Set([0, 5, 10, 15, 30, 60, current])).sorted()
     }
@@ -230,5 +229,28 @@ extension RGB {
     init(hex: String) {
         let v = UInt32(hex, radix: 16) ?? 0
         self.init(r: Double((v >> 16) & 0xFF) / 255, g: Double((v >> 8) & 0xFF) / 255, b: Double(v & 0xFF) / 255)
+    }
+}
+
+struct ColorRow: View {
+    var title: String
+    @Binding var selection: RGB
+
+    private let swatches = ["44D62C", "FF0033", "00A2FF", "B000FF", "FF8A00", "FFFFFF"]
+
+    var body: some View {
+        HStack {
+            Text(title)
+            Spacer()
+            ForEach(swatches, id: \.self) { hex in
+                let c = RGB(hex: hex)
+                Circle().fill(c.color).frame(width: 18, height: 18)
+                    .overlay(Circle().strokeBorder(.white.opacity(selection.bytes == c.bytes ? 0.9 : 0), lineWidth: 2))
+                    .onTapGesture { selection = c }
+            }
+            ColorPicker("", selection: Binding(get: { selection.color }, set: { selection = RGB($0) }),
+                        supportsOpacity: false)
+                .labelsHidden()
+        }
     }
 }

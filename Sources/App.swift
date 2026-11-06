@@ -7,11 +7,11 @@ struct SynapselessApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuView(controller: delegate.controller, lighting: delegate.controller.lighting, devices: delegate.devices) {
+            MenuView(controller: delegate.controller, lighting: delegate.controller.lighting, devices: delegate.devices, kraken: delegate.kraken) {
                 delegate.showCard()
             }
         } label: {
-            MenuBarLabel(controller: delegate.controller)
+            MenuBarLabel(controller: delegate.controller, kraken: delegate.kraken)
         }
         .menuBarExtraStyle(.window)
     }
@@ -21,6 +21,7 @@ struct SynapselessApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let controller = HeadsetController()
     let devices = StandardDeviceManager()
+    let kraken = KrakenManager()
     private let popup = ConnectPopup()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -40,11 +41,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.popup.show(device: device, kind: .disconnected(battery: device.battery, charging: device.charging))
         }
         devices.start()
+        kraken.onConnected = { [weak self] in self?.popup.show(.kraken($0)) }
+        kraken.onDisconnected = { [weak self] in
+            self?.popup.show(.kraken($0), kind: .disconnected(battery: nil, charging: false))
+        }
+        kraken.start()
+        if CommandLine.arguments.contains("--kraken-test") { KrakenSelfTest(manager: kraken).run() }
         if CommandLine.arguments.contains("--selftest") { SelfTest(controller: controller).run() }
         if CommandLine.arguments.contains("--demo-cards") { runCardDemo() }
     }
 
     func showCard() {
+        if !controller.dongleConnected, let device = kraken.device { return popup.show(.kraken(device)) }
         popup.show(controller: controller)
     }
 

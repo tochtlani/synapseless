@@ -2,7 +2,7 @@
 
 # Synapseless
 
-**Control nativo de macOS para el Razer Barracuda X Chroma, y soporte experimental para 159 ratones, teclados y laptops Razer.**
+**Control nativo de macOS para el Razer Barracuda X Chroma y el Kraken Ultimate, y soporte experimental para 159 ratones, teclados y laptops Razer.**
 Funciona en Macs con Intel y con Apple silicon, sin Razer Synapse.
 
 <img src="docs/connect.gif" width="400" alt="Tarjeta de conexión estilo AirPods">&nbsp;&nbsp;<img src="docs/disconnect.gif" width="400" alt="Animación de apagado">
@@ -28,6 +28,7 @@ Razer Synapse para Mac solo se instala en Macs con chip M, y aun ahí no reconoc
 | **Energía** | Apagado automático (5–60 min o nunca), batería y estado de carga. |
 | **Sincronización** | Si cambias el EQ o las luces con los botones del audífono, el menú se actualiza solo. |
 | **Ediciones** | Detecta la edición (Negro, Blanco, Verde translúcido, Negro translúcido, Transparente) y muestra su render. |
+| **Kraken Ultimate** | Estático, Respiración, Espectro y Apagado por USB, con brillo en Estático. Al cambiar de color pasa un arcoíris de 1.5 s y se queda en el color elegido. |
 | **Otros modelos** 🧪 | 159 ratones, teclados, laptops Blade y accesorios con efectos Chroma, brillo, DPI, polling y batería. Experimentales: [ver lista](DEVICES.md). |
 
 <div align="center">
@@ -52,7 +53,7 @@ Al conectar cualquiera de los [159 modelos del catálogo](DEVICES.md), aparece s
 ## Requisitos
 
 - macOS 14 Sonoma o posterior, Intel o Apple silicon
-- Razer Barracuda X Chroma conectado con su receptor USB-C (`1532:0574`), o un modelo del [catálogo](DEVICES.md)
+- Razer Barracuda X Chroma conectado con su receptor USB-C (`1532:0574`), Razer Kraken Ultimate por USB (`1532:0527`), o un modelo del [catálogo](DEVICES.md)
 - Xcode o las Command Line Tools, para compilar
 
 ## Instalación
@@ -87,6 +88,9 @@ Haz clic en el ícono de audífonos de la barra de menús, que también muestra 
 # Prueba cada escritura contra el audífono real, la verifica leyendo de vuelta y restaura los valores
 "build/Synapseless.app/Contents/MacOS/Synapseless" --selftest
 
+# Corre cada efecto del Kraken Ultimate para verlo en los audífonos, restaura el estado y termina
+"build/Synapseless.app/Contents/MacOS/Synapseless" --kraken-test
+
 # Muestra la tarjeta combinada: el audífono, se une un ratón del catálogo y luego se apaga
 "build/Synapseless.app/Contents/MacOS/Synapseless" --demo-cards
 
@@ -104,6 +108,7 @@ Sources/
 ├── ConnectPopup.swift       Tarjeta de conexión y de apagado (NSPanel + SwiftUI)
 ├── StandardDevice.swift     Protocolo estándar de 90 bytes para el resto de modelos
 ├── DeviceViews.swift        Sección del menú y dibujo de esos modelos
+├── KrakenDevice.swift       Kraken Ultimate: protocolo de memoria, efectos, transición y menú
 ├── RazerModels.swift        Catálogo de 159 modelos (generado)
 ├── MenuView.swift           Menú de la barra
 ├── DocRenderer.swift        Generador de las imágenes del README
@@ -119,7 +124,8 @@ El protocolo completo está en **[PROTOCOL.md](PROTOCOL.md)**.
 
 ## Limitaciones
 
-- **Probado:** solo el **Barracuda X Chroma** por el receptor USB-C. Por Bluetooth el audífono usa otro protocolo.
+- **Probado:** el **Barracuda X Chroma** por el receptor USB-C (por Bluetooth usa otro protocolo) y las luces del **Kraken Ultimate** por USB.
+- **Kraken Ultimate:** solo se controlan las luces, se escriben en RAM y pueden perderse al desconectarlo. Al entrar a Estático desde otro efecto hay un parpadeo mínimo.
 - **Resto de modelos:** sin probar. En los ratones inalámbricos con dongle, el ID USB del dongle puede no estar en el catálogo.
 - **Sin control por tecla:** los teclados solo reciben efectos para todo el teclado.
 - **Sin THX Spatial Audio:** es software propio de Razer.

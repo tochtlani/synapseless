@@ -3,6 +3,7 @@
 | Estado | Modelo |
 |---|---|
 | ✅ Probado | Razer Barracuda X Chroma (`0574`, receptor USB-C) |
+| ✅ Probado | Razer Kraken Ultimate (`0527`, USB, solo luces) |
 | 🧪 Experimental | Los 159 modelos de abajo, sin probar en hardware |
 
 La lista sale de los paquetes de Synapse 4 de cada producto. El ID USB es el *product ID* en hexadecimal (vendor `1532`).

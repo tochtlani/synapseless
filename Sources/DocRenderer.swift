@@ -39,7 +39,7 @@ struct DocRenderer {
     private func renderMenu() {
         controller.lighting.render(at: 1.2)
         let view = Backdrop {
-            MenuView(controller: controller, lighting: controller.lighting, devices: StandardDeviceManager(), showCard: {})
+            MenuView(controller: controller, lighting: controller.lighting, devices: StandardDeviceManager(), kraken: KrakenManager(), showCard: {})
                 .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(white: 0.14)))
                 .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.white.opacity(0.1)))
                 .shadow(color: .black.opacity(0.4), radius: 20, y: 8)
